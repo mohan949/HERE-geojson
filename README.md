@@ -5,15 +5,17 @@ Playwright test framework for testing geojson.io using Page Object Model.
 
 ```
 HERE-geojson/
-├── src/geojson_tests/
-│   ├── pages/                     # Page objects
-│   │   ├── base_page.py
-│   │   └── geojson_page.py
-│   └── config/
-│       └── test_config.py
-├── tests/integration/             # Test files
+├── src/
+│   └── geojson_tests/
+│       ├── __init__.py
+│       └── pages/
+│           ├── __init__.py
+│           ├── base_page.py
+│           └── geojson_page.py
+├── tests/
 │   ├── conftest.py
 │   └── test_geojson.py
+├── pytest.ini
 └── requirements.txt
 ```
 
@@ -33,11 +35,11 @@ playwright install chromium
 ## Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (headless by default)
 pytest tests -v
 
-# Run with visible browser
-pytest tests -v -s
+# Run with a visible browser window
+pytest tests -v --headed
 ```
 
 ## Test Example
@@ -45,6 +47,5 @@ pytest tests -v -s
 ```python
 def test_navigate_to_geojson_io(geojson_page):
     geojson_page.open_geojson_io()
-    page_info = geojson_page.get_page_info()
-    assert "geojson.io" in page_info["url"]
+    assert "geojson.io" in geojson_page.get_url()
 ```

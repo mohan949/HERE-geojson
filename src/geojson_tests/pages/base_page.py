@@ -22,4 +22,4 @@ class BasePage:
         self.page.locator(selector).first.fill(text)
     
     def wait_for_text(self, text: str):
-        self.page.wait_for_selector(f"text={text}")
+        return self.page.wait_for_selector(f"text={text}")

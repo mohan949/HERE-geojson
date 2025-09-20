@@ -22,9 +22,13 @@ class GeoJSONPage(BasePage):
         self.wait_for_text("geojson.io")
     
     def search_location(self, location):
-        self.click_element(self.SEARCH_TEXTBOX)
-        self.fill_input(self.SEARCH_TEXTBOX, location)
-        self.click_element(f'a:has-text("{location}")')
+        search_box = self.search_input()
+        search_box.click()
+        search_box.fill(location)
+        self.page.locator(f'a:has-text("{location}")').first.click()
+
+    def search_input(self):
+        return self.page.get_by_role("textbox", name="Search")
     
     def click_map_position(self, x, y):
         self.page.get_by_role("region", name="Map").click(position={"x": x, "y": y})
@@ -36,13 +40,22 @@ class GeoJSONPage(BasePage):
         self.click_element(self.ZOOM_OUT_BUTTON)
     
     def select_drawing_tool(self, tool):
-        tools = {
+        selector = self._drawing_tools().get(tool)
+        if selector:
+            self.click_element(selector)
+
+    def is_tool_active(self, tool):
+        selector = self._drawing_tools().get(tool)
+        if not selector:
+            return False
+        return self.page.locator(selector).first.get_attribute("aria-pressed") == "true"
+
+    def _drawing_tools(self):
+        return {
             "point": self.DRAW_POINT_BUTTON,
             "line": self.DRAW_LINE_BUTTON,
-            "polygon": self.DRAW_POLYGON_BUTTON
+            "polygon": self.DRAW_POLYGON_BUTTON,
         }
-        if tool in tools:
-            self.click_element(tools[tool])
     
     def open_file_menu(self):
         self.click_element(self.OPEN_BUTTON)
@@ -52,3 +65,11 @@ class GeoJSONPage(BasePage):
     
     def create_new_file(self):
         self.click_element(self.NEW_BUTTON)
+
+    def is_map_ready(self):
+        return self.page.get_by_role("region", name="Map").is_visible()
+
+    def is_file_menu_open(self):
+        button = self.page.get_by_role("button", name="Open")
+        expanded = button.get_attribute("aria-expanded")
+        return expanded == "true"
