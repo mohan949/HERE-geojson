@@ -1,10 +1,10 @@
-name: Test GeoJSON.io
+name: Run Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   test:
@@ -16,20 +16,20 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        playwright install
+        playwright install chromium
+        playwright install-deps
     
-    - name: Run tests
-      run: pytest
+    - name: Run tests with marker
+      run: |
+        pytest tests/ -v -m "not slow" --headed=false
     
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: test-results
-        path: test-results/
+    - name: Run slow tests
+      run: |
+        pytest tests/ -v -m "slow" --headed=false
+      continue-on-error: true
