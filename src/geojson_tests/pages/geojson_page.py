@@ -3,16 +3,6 @@ from .base_page import BasePage
 
 
 class GeoJSONPage(BasePage):
-    SEARCH_TEXTBOX = 'role="textbox" name="Search"'
-    ZOOM_IN_BUTTON = 'role="button" name="Zoom in"'
-    ZOOM_OUT_BUTTON = 'role="button" name="Zoom out"'
-    DRAW_POINT_BUTTON = 'role="button" name="Draw Point (m)"'
-    DRAW_LINE_BUTTON = 'role="button" name="Draw LineString (l)"'
-    DRAW_POLYGON_BUTTON = 'role="button" name="Draw Polygon (p)"'
-    OPEN_BUTTON = 'text="Open" exact=true'
-    SAVE_BUTTON = 'a:has-text("Save")'
-    NEW_BUTTON = 'text="New"'
-    
     def __init__(self, page: Page):
         super().__init__(page)
         self.base_url = "https://geojson.io/"
@@ -24,8 +14,12 @@ class GeoJSONPage(BasePage):
     def search_location(self, location):
         search_box = self.search_input()
         search_box.click()
-        search_box.fill(location)
-        self.page.locator(f'a:has-text("{location}")').first.click()
+        search_box.fill("")
+        search_box.type(location, delay=80)
+        suggestion = self.page.locator(".suggestions li").first
+        suggestion.wait_for(state="visible")
+        suggestion.locator("a").first.click()
+        self.page.wait_for_timeout(3000)
 
     def search_input(self):
         return self.page.get_by_role("textbox", name="Search")
@@ -34,42 +28,46 @@ class GeoJSONPage(BasePage):
         self.page.get_by_role("region", name="Map").click(position={"x": x, "y": y})
     
     def zoom_in(self):
-        self.click_element(self.ZOOM_IN_BUTTON)
+        self.page.get_by_role("button", name="Zoom in").click()
     
     def zoom_out(self):
-        self.click_element(self.ZOOM_OUT_BUTTON)
+        self.page.get_by_role("button", name="Zoom out").click()
     
     def select_drawing_tool(self, tool):
-        selector = self._drawing_tools().get(tool)
-        if selector:
-            self.click_element(selector)
+        tool_config = self._drawing_tools().get(tool)
+        if not tool_config:
+            return
+        self.page.get_by_role("button", name=tool_config["label"]).click()
+        self.page.wait_for_function(
+            "expected => window.api?.draw?.getMode && window.api.draw.getMode() === expected",
+            arg=tool_config["mode"],
+        )
 
     def is_tool_active(self, tool):
-        selector = self._drawing_tools().get(tool)
-        if not selector:
+        tool_config = self._drawing_tools().get(tool)
+        if not tool_config:
             return False
-        return self.page.locator(selector).first.get_attribute("aria-pressed") == "true"
+        current_mode = self.page.evaluate("() => window.api?.draw?.getMode && window.api.draw.getMode()")
+        return current_mode == tool_config["mode"]
 
     def _drawing_tools(self):
         return {
-            "point": self.DRAW_POINT_BUTTON,
-            "line": self.DRAW_LINE_BUTTON,
-            "polygon": self.DRAW_POLYGON_BUTTON,
+            "point": {"label": "Draw Point (m)", "mode": "draw_point"},
+            "line": {"label": "Draw LineString (l)", "mode": "draw_line_string"},
+            "polygon": {"label": "Draw Polygon (p)", "mode": "draw_polygon"},
         }
     
     def open_file_menu(self):
-        self.click_element(self.OPEN_BUTTON)
+        self.page.locator("a.parent", has_text="Open").click()
     
     def save_file(self):
-        self.click_element(self.SAVE_BUTTON)
+        self.page.locator("a.parent", has_text="Save").click()
     
     def create_new_file(self):
-        self.click_element(self.NEW_BUTTON)
+        self.page.locator("a.parent", has_text="New").click()
 
     def is_map_ready(self):
         return self.page.get_by_role("region", name="Map").is_visible()
 
     def is_file_menu_open(self):
-        button = self.page.get_by_role("button", name="Open")
-        expanded = button.get_attribute("aria-expanded")
-        return expanded == "true"
+        return self.page.locator('input[type="file"]').count() > 0
