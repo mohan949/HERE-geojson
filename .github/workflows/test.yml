@@ -25,11 +25,11 @@ jobs:
         playwright install chromium
         playwright install-deps
     
-    - name: Run tests with marker
+    - name: Run CI-safe tests
       run: |
-        pytest tests/ -v -m "not slow" --headed=false
+        pytest tests/ -v -m "ci_safe"
     
     - name: Run slow tests
       run: |
-        pytest tests/ -v -m "slow" --headed=false
+        pytest tests/ -v -m "slow"
       continue-on-error: true

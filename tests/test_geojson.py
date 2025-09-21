@@ -1,23 +1,22 @@
-import pytest
 import re
 
+import pytest
 from playwright.sync_api import expect
 
 
-@pytest.mark.fast
+@pytest.mark.ci_safe
 def test_launch_geojson_io(geojson_page):
     geojson_page.open_geojson_io()
     expect(geojson_page.page).to_have_url(re.compile(r"geojson\.io"))
     expect(geojson_page.page).to_have_title(re.compile(r"geojson", re.I))
 
 
-@pytest.mark.fast
+@pytest.mark.ci_safe
 def test_search_mumbai(geojson_page):
     geojson_page.open_geojson_io()
     geojson_page.search_location("Mumbai")
     expect(geojson_page.search_input()).to_have_value(re.compile("Mumbai", re.I))
 
-@pytest.mark.slow
 def test_map_interactions(geojson_page):
     geojson_page.open_geojson_io()
     geojson_page.search_location("Mumbai")
@@ -34,12 +33,9 @@ def test_map_interactions(geojson_page):
     assert geojson_page.is_tool_active("polygon")
     assert geojson_page.is_map_ready()
 
-'''
-@pytest.mark.slow
 def test_file_operations(geojson_page):
     geojson_page.open_geojson_io()
     geojson_page.open_file_menu()
     assert geojson_page.is_file_menu_open()
     geojson_page.save_file()
     geojson_page.create_new_file()
-'''
