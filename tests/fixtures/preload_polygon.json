@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Simple Square"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.04, 27.17],
+            [78.06, 27.17],
+            [78.06, 27.19],
+            [78.04, 27.19],
+            [78.04, 27.17]
+          ]
+        ]
+      }
+    }
+  ]
+}

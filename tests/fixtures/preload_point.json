@@ -1,0 +1,16 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Taj Mahal",
+        "category": "monument"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.0421, 27.1751]
+      }
+    }
+  ]
+}
