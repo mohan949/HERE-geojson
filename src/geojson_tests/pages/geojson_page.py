@@ -66,6 +66,11 @@ class GeoJSONPage(BasePage):
     def create_new_file(self):
         self.page.locator("a.parent", has_text="New").click()
 
+    def upload_file(self, file_path):
+        upload_input = self.page.locator('input[type="file"]')
+        upload_input.set_input_files(file_path)
+        upload_input.wait_for(state="detached")
+
     def is_map_ready(self):
         return self.page.get_by_role("region", name="Map").is_visible()
 

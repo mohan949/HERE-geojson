@@ -1,3 +1,4 @@
+from pathlib import Path
 import re
 
 import pytest
@@ -24,21 +25,36 @@ def test_map_interactions(geojson_page):
     geojson_page.open_geojson_io()
     geojson_page.search_location("Mumbai")
     geojson_page.click_map_position(440, 271)
-    for step in (
-        geojson_page.zoom_in,
-        geojson_page.zoom_out,
-        lambda: geojson_page.select_drawing_tool("point"),
-        lambda: geojson_page.select_drawing_tool("line"),
-        lambda: geojson_page.select_drawing_tool("polygon"),
-    ):
-        geojson_page.page.wait_for_timeout(3000)
-        step()
+    geojson_page.zoom_in()
+    geojson_page.zoom_out()
+    geojson_page.select_drawing_tool("point")
+    geojson_page.select_drawing_tool("line")
+    geojson_page.select_drawing_tool("polygon")
     assert geojson_page.is_tool_active("polygon")
     assert geojson_page.is_map_ready()
 
+@pytest.mark.ci_safe
 def test_file_operations(geojson_page):
     geojson_page.open_geojson_io()
-    geojson_page.open_file_menu()
-    assert geojson_page.is_file_menu_open()
-    geojson_page.save_file()
-    geojson_page.create_new_file()
+    data_file = Path(__file__).parent / "sample_points.csv"
+    with geojson_page.page.expect_file_chooser() as chooser:
+        geojson_page.open_file_menu()
+    chooser.value.set_files(str(data_file))
+    expect(
+        geojson_page.page.locator("div.content", has_text="Imported 2 features.")
+    ).to_be_visible()
+    geojson_page.page.get_by_role("button", name=" JSON").click()
+    expect(geojson_page.page.get_by_text('"name": "Gateway of India"')).to_be_visible()
+    expect(geojson_page.page.get_by_text('"name": "India Gate"')).to_be_visible()
+
+
+@pytest.mark.ci_safe
+def test_upload_invalid_file_shows_error(geojson_page):
+    geojson_page.open_geojson_io()
+    invalid_file = Path(__file__).parent / "map.geojson"
+    with geojson_page.page.expect_file_chooser() as chooser:
+        geojson_page.open_file_menu()
+    chooser.value.set_files(str(invalid_file))
+    expect(
+        geojson_page.page.locator("div.content", has_text="Imported 0 features.")
+    ).to_be_visible()

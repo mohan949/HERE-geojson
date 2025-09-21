@@ -10,18 +10,28 @@ def pytest_addoption(parser):
         action="store_true",
         help="Run browser with a visible window (default: headless)",
     )
+    parser.addoption(
+        "--slowmo",
+        action="store",
+        type=int,
+        default=0,
+        help="Delay Playwright actions in milliseconds",
+    )
 
 
 @pytest.fixture
 def page(request):
     headed = request.config.getoption("--headed")
+    slow_mo = request.config.getoption("--slowmo")
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=not headed)
+        browser = p.chromium.launch(headless=not headed, slow_mo=slow_mo)
         context = browser.new_context()
         page = context.new_page()
-        yield page
-        context.close()
-        browser.close()
+        try:
+            yield page
+        finally:
+            context.close()
+            browser.close()
 
 
 @pytest.fixture
