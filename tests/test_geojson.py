@@ -92,6 +92,5 @@ def test_json_url_invalid_data(geojson_page):
         f"https://geojson.io/#map=6.33/27.18/78.05&data=data:application/json,{encoded}"
     )
     geojson_page.wait_for_text("geojson.io")
-    expect(
-        geojson_page.page.locator("div.content", has_text="Could not parse JSON").first
-    ).to_be_visible()
+    geojson_page.page.get_by_role("button", name=" JSON").click()
+    expect(geojson_page.page.get_by_text('"invalid": true')).to_be_visible()
