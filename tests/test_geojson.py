@@ -12,11 +12,14 @@ def test_launch_geojson_io(geojson_page):
 
 
 @pytest.mark.ci_safe
-def test_search_mumbai(geojson_page):
+@pytest.mark.parametrize("city", ["Mumbai", "Delhi"])
+def test_search_city(geojson_page, city):
     geojson_page.open_geojson_io()
-    geojson_page.search_location("Mumbai")
-    expect(geojson_page.search_input()).to_have_value(re.compile("Mumbai", re.I))
+    geojson_page.search_location(city)
+    expect(geojson_page.search_input()).to_have_value(re.compile(city, re.I))
 
+
+@pytest.mark.ci_safe
 def test_map_interactions(geojson_page):
     geojson_page.open_geojson_io()
     geojson_page.search_location("Mumbai")
